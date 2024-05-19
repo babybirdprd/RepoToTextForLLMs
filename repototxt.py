@@ -1,29 +1,23 @@
+# repototext.py
+
 import os
 from github import Github
 from tqdm import tqdm
 from dotenv import load_dotenv
 import json
 
-load_dotenv()  # Load variables from .env file
+load_dotenv()  # Load environment variables from .env file
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
-
 def get_readme_content(repo):
-    """
-    Retrieve the content of the README file.
-    """
     try:
         readme = repo.get_contents("README.md")
         return readme.decoded_content.decode('utf-8')
     except:
         return "README not found."
 
-
 def traverse_repo_iteratively(repo):
-    """
-    Traverse the repository iteratively to avoid recursion limits for large repositories.
-    """
     structure = ""
     dirs_to_visit = [("", repo.get_contents(""))]
     dirs_visited = set()
@@ -40,12 +34,11 @@ def traverse_repo_iteratively(repo):
                 structure += f"{path}/{content.name}\n"
     return structure
 
-
 def get_file_contents(path, binary_extensions):
     file_contents = ""
     for root, _, files in os.walk(path):
         for name in files:
-            if not is_binary(name):
+            if not is_binary(name, binary_extensions):
                 file_path = os.path.join(root, name)
                 try:
                     with open(file_path, 'r', encoding='utf-8') as file:
@@ -59,48 +52,23 @@ def get_file_contents(path, binary_extensions):
                 file_contents += f"File: /{os.path.relpath(os.path.join(root, name), path)}\nContent: Skipped binary file\n\n"
     return file_contents
 
-
 def get_binary_extensions():
-    binary_extensions = [
-        # Compiled executables and libraries
-        '.exe', '.dll', '.so', '.a', '.lib', '.dylib', '.o', '.obj',
-        # Compressed archives
-        '.zip', '.tar', '.tar.gz', '.tgz', '.rar', '.7z', '.bz2', '.gz', '.xz', '.z', '.lz', '.lzma', '.lzo', '.rz',
-        '.sz', '.dz',
-        # Application-specific files
-        '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.odt', '.ods', '.odp',
-        # Media files (less common)
-        '.png', '.jpg', '.jpeg', '.gif', '.mp3', '.mp4', '.wav', '.flac', '.ogg', '.avi', '.mkv', '.mov', '.webm',
-        '.wmv', '.m4a', '.aac',
-        # Virtual machine and container images
-        '.iso', '.vmdk', '.qcow2', '.vdi', '.vhd', '.vhdx', '.ova', '.ovf',
-        # Database files
-        '.db', '.sqlite', '.mdb', '.accdb', '.frm', '.ibd', '.dbf',
-        # Java-related files
-        '.jar', '.class', '.war', '.ear', '.jpi',
-        # Python bytecode and packages
-        '.pyc', '.pyo', '.pyd', '.egg', '.whl',
-        # Other potentially important extensions
-        '.deb', '.rpm', '.apk', '.msi', '.dmg', '.pkg', '.bin', '.dat', '.data',
-        '.dump', '.img', '.toast', '.vcd', '.crx', '.xpi', '.lockb', 'package-lock.json', '.svg',
-        '.eot', '.otf', '.ttf', '.woff', '.woff2',
-        '.ico', '.icns', '.cur',
-        '.cab', '.dmp', '.msp', '.msm',
-        '.keystore', '.jks', '.truststore', '.cer', '.crt', '.der', '.p7b', '.p7c', '.p12', '.pfx', '.pem', '.csr',
-        '.key', '.pub', '.sig', '.pgp', '.gpg',
-        '.nupkg', '.snupkg', '.appx', '.msix', '.msp', '.msu',
-        '.deb', '.rpm', '.snap', '.flatpak', '.appimage',
-        '.ko', '.sys', '.elf',
-        '.swf', '.fla', '.swc',
-        '.rlib', '.pdb', '.idb', '.pdb', '.dbg',
-        '.sdf', '.bak', '.tmp', '.temp', '.log', '.tlog', '.ilk',
-        '.bpl', '.dcu', '.dcp', '.dcpil', '.drc',
-        '.aps', '.res', '.rsrc', '.rc', '.resx',
-        '.prefs', '.properties', '.ini', '.cfg', '.config', '.conf',
-        '.DS_Store', '.localized', '.svn', '.git', '.gitignore', '.gitkeep',
+    return [
+        '.exe', '.dll', '.so', '.a', '.lib', '.dylib', '.o', '.obj', '.zip', '.tar', '.tar.gz', '.tgz', '.rar', '.7z', 
+        '.bz2', '.gz', '.xz', '.z', '.lz', '.lzma', '.lzo', '.rz', '.sz', '.dz', '.pdf', '.doc', '.docx', '.xls', 
+        '.xlsx', '.ppt', '.pptx', '.odt', '.ods', '.odp', '.png', '.jpg', '.jpeg', '.gif', '.mp3', '.mp4', '.wav', 
+        '.flac', '.ogg', '.avi', '.mkv', '.mov', '.webm', '.wmv', '.m4a', '.aac', '.iso', '.vmdk', '.qcow2', '.vdi', 
+        '.vhd', '.vhdx', '.ova', '.ovf', '.db', '.sqlite', '.mdb', '.accdb', '.frm', '.ibd', '.dbf', '.jar', '.class', 
+        '.war', '.ear', '.jpi', '.pyc', '.pyo', '.pyd', '.egg', '.whl', '.deb', '.rpm', '.apk', '.msi', '.dmg', 
+        '.pkg', '.bin', '.dat', '.data', '.dump', '.img', '.toast', '.vcd', '.crx', '.xpi', '.lockb', 'package-lock.json', 
+        '.svg', '.eot', '.otf', '.ttf', '.woff', '.woff2', '.ico', '.icns', '.cur', '.cab', '.dmp', '.msp', '.msm', 
+        '.keystore', '.jks', '.truststore', '.cer', '.crt', '.der', '.p7b', '.p7c', '.p12', '.pfx', '.pem', '.csr', 
+        '.key', '.pub', '.sig', '.pgp', '.gpg', '.nupkg', '.snupkg', '.appx', '.msix', '.msp', '.msu', '.deb', 
+        '.rpm', '.snap', '.flatpak', '.appimage', '.ko', '.sys', '.elf', '.swf', '.fla', '.swc', '.rlib', '.pdb', 
+        '.idb', '.dbg', '.sdf', '.bak', '.tmp', '.temp', '.log', '.tlog', '.ilk', '.bpl', '.dcu', '.dcp', '.dcpil', 
+        '.drc', '.aps', '.res', '.rsrc', '.rc', '.resx', '.prefs', '.properties', '.ini', '.cfg', '.config', '.conf', 
+        '.DS_Store', '.localized', '.svn', '.git', '.gitignore', '.gitkeep'
     ]
-    return binary_extensions
-
 
 def get_file_contents_iteratively(repo):
     file_contents = ""
@@ -116,40 +84,26 @@ def get_file_contents_iteratively(repo):
                 if content.path not in dirs_visited:
                     dirs_to_visit.append((f"{path}/{content.name}", repo.get_contents(content.path)))
             else:
-                # Check if the file extension suggests it's a binary file
                 if any(content.name.endswith(ext) for ext in binary_extensions):
                     file_contents += f"File: {path}/{content.name}\nContent: Skipped binary file\n\n"
                 else:
                     file_contents += f"File: {path}/{content.name}\n"
                     try:
-                        if content.encoding is None or content.encoding == 'none':
-                            file_contents += "Content: Skipped due to missing encoding\n\n"
-                        else:
-                            try:
-                                decoded_content = content.decoded_content.decode('utf-8')
-                                file_contents += f"Content:\n{decoded_content}\n\n"
-                            except UnicodeDecodeError:
-                                try:
-                                    decoded_content = content.decoded_content.decode('latin-1')
-                                    file_contents += f"Content (Latin-1 Decoded):\n{decoded_content}\n\n"
-                                except UnicodeDecodeError:
-                                    file_contents += "Content: Skipped due to unsupported encoding\n\n"
-                    except (AttributeError, UnicodeDecodeError):
-                        file_contents += "Content: Skipped due to decoding error or missing decoded_content\n\n"
+                        decoded_content = content.decoded_content.decode('utf-8')
+                        file_contents += f"Content:\n{decoded_content}\n\n"
+                    except UnicodeDecodeError:
+                        file_contents += "Content: Skipped due to encoding issue\n\n"
+                    except:
+                        file_contents += "Content: Error reading file\n\n"
     return file_contents
 
-
-def is_binary(filename):
+def is_binary(filename, binary_extensions):
     return any(filename.endswith(ext) for ext in binary_extensions)
 
-
 def get_repo_contents(repo_url):
-    """
-    Main function to get repository contents.
-    """
     repo_name = repo_url.split('/')[-1]
     if not GITHUB_TOKEN:
-        raise ValueError("Please set the 'GITHUB_TOKEN' environment variable or the 'GITHUB_TOKEN' in the script.")
+        raise ValueError("Please set the 'GITHUB_TOKEN' environment variable.")
     g = Github(GITHUB_TOKEN)
     repo = g.get_repo(repo_url.replace('https://github.com/', ''))
     print(f"Fetching README for: {repo_name}")
@@ -177,24 +131,13 @@ def get_repo_contents(repo_url):
 
     return repo_name, instructions, readme_content, repo_structure, file_contents
 
-
 def analyze_local_repo(path, binary_extensions):
-    """
-    Analyze a local repository to understand its structure and contents.
-    :param path: absolute path to the local repository
-    :param binary_extensions: list of binary file extensions to skip during analysis
-    :return: string containing the analysis results
-    """
     print(f"Analyzing local repository at: {path}")
-
     readme_content = get_readme_content(path)
     repo_structure = traverse_directory(path)
     file_contents = get_file_contents(path, binary_extensions)
-
-    # Combine all the parts into one output
     output_content = "README:\n" + readme_content + "\n\n" + repo_structure + "\n\n" + file_contents
     return output_content
-
 
 def traverse_directory(path):
     structure = "Repository Structure:\n"
@@ -210,68 +153,42 @@ def traverse_directory(path):
             structure += f"/{relative_path}{name}\n"
     return structure
 
-
 def get_prompt(prompt_path):
     with open(prompt_path, 'r', encoding='utf-8') as f:
         return f.read()
 
+def main():
+    while True:
+        method = input("Do you want to analyze a local repository or a GitHub repository? (local/remote): ").strip().lower()
+        if method in ["local", "remote"]:
+            break
+        print("Invalid input. Please enter 'local' or 'remote'.")
 
-def init(config_path):
-    filename_opened = open(config_path, mode='r')
+    if method == "local":
+        repo_path = input("Enter the full path to the local repository: ").strip()
+        binary_extensions = get_binary_extensions()
+        analysis_result = analyze_local_repo(repo_path, binary_extensions)
+        repo_name = os.path.basename(repo_path)
+        output_filename = f"{repo_name}_contents.txt"
+    elif method == "remote":
+        repo_url = input("Enter the GitHub repository URL: ").strip()
+        repo_name, instructions, readme_content, repo_structure, file_contents = get_repo_contents(repo_url)
+        analysis_result = instructions + f"README:\n{readme_content}\n\n" + repo_structure + '\n\n' + file_contents
+        output_filename = f'{repo_name}_contents.txt'
 
-    j = {}
-    j = json.load(filename_opened)
+    prompt = get_prompt("prompt.txt")
+    analysis_result = (prompt + analysis_result).replace("##REPO_NAME##", repo_name)
+    with open(output_filename, 'w', encoding='utf-8') as f:
+        f.write(repo_name, instructions, readme_content, repo_structure, file_contents = get_repo_contents(repo_url)
+        analysis_result = instructions + f"README:\n{readme_content}\n\n" + repo_structure + "\n\n" + file_contents
+        output_filename = f"{repo_name}_contents.txt"
 
-    filename_opened.close()
-    return j
-
+    prompt = get_prompt("prompt.txt")
+    analysis_result = (prompt + analysis_result).replace("##REPO_NAME##", repo_name)
+    
+    with open(output_filename, 'w', encoding='utf-8') as f:
+        f.write(analysis_result)
+    print(f"Repository contents saved to '{output_filename}'.")
 
 if __name__ == '__main__':
-    try:
-        # config variable from config.json
-        config = init("config.json")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        print("Please check the config file and try again.")
-        exit()
-
-    try:
-        method = config["method"]
-        repo_path_or_url = config["repo_path"]
-    except KeyError as ke:
-        print(f"Error: The key '{ke}' is missing in the config file.")
-        print("Please check the config file and try again.")
-        exit()
-
-    if method == "local" or method == "l":
-        try:
-            repo_name = repo_path_or_url.split('/')[-1]
-            binary_extensions = get_binary_extensions()
-            analysis_result = analyze_local_repo(repo_path_or_url, binary_extensions)
-            output_filename = f"{repo_name}_contents.txt"
-            prompt = get_prompt("prompt.txt")
-            analysis_result = (prompt + analysis_result).replace("##REPO_NAME##", repo_name)
-            with open(output_filename, 'w', encoding='utf-8') as f:
-                f.write(analysis_result)
-            print(f"Local repository contents saved to '{output_filename}'.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            print("Please check the repository path and try again.")
-    elif method == "remote" or method == "r":
-        try:
-            repo_name, instructions, readme_content, repo_structure, file_contents = get_repo_contents(repo_path_or_url)
-            output_filename = f'{repo_name}_contents.txt'
-            with open(output_filename, 'w', encoding='utf-8') as f:
-                f.write(instructions)
-                f.write(f"README:\n{readme_content}\n\n")
-                f.write(repo_structure)
-                f.write('\n\n')
-                f.write(file_contents)
-            print(f"Repository contents saved to '{output_filename}'.")
-        except ValueError as ve:
-            print(f"Error: {ve}")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            print("Please check the repository URL and try again.")
-    else:
-        print("Invalid method. Please enter 'local', 'remote', 'l', or 'r'.")
+    main()
