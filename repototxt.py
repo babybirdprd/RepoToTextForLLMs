@@ -4,7 +4,6 @@ import os
 from github import Github
 from tqdm import tqdm
 from dotenv import load_dotenv
-import json
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -173,13 +172,6 @@ def main():
     elif method == "remote":
         repo_url = input("Enter the GitHub repository URL: ").strip()
         repo_name, instructions, readme_content, repo_structure, file_contents = get_repo_contents(repo_url)
-        analysis_result = instructions + f"README:\n{readme_content}\n\n" + repo_structure + '\n\n' + file_contents
-        output_filename = f'{repo_name}_contents.txt'
-
-    prompt = get_prompt("prompt.txt")
-    analysis_result = (prompt + analysis_result).replace("##REPO_NAME##", repo_name)
-    with open(output_filename, 'w', encoding='utf-8') as f:
-        f.write(repo_name, instructions, readme_content, repo_structure, file_contents = get_repo_contents(repo_url)
         analysis_result = instructions + f"README:\n{readme_content}\n\n" + repo_structure + "\n\n" + file_contents
         output_filename = f"{repo_name}_contents.txt"
 
